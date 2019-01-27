@@ -11,6 +11,7 @@ from .supervised_learner import SupervisedLearner
 
 class PerceptronLearner(SupervisedLearner):
 
+
     def train(self, features, labels):
         solution_found = False
         n_epochs_without_improvement = 0
@@ -20,11 +21,10 @@ class PerceptronLearner(SupervisedLearner):
         best_mse = math.inf
         best_weights = np.zeros(shape=(1, features.cols + 1))
 
-
-        # todo: build in a bfsf to store weights with associated lowest mse
-
         first_epoch = True
-        while n_epochs_without_improvement < 5 and not solution_found:
+        # epochs
+        # todo: build stopping criteria based off of accuracy, not improvement
+        while n_epochs_without_improvement < 40 and not solution_found:
             sse = 0
             for i, row in enumerate(features.data):
                 # add bias input to row and convert to numpy array
@@ -35,13 +35,8 @@ class PerceptronLearner(SupervisedLearner):
                 # get target
                 target = labels.data[i][0]
 
-                # compute net
-                net = np.dot(w, row)
-                # compute output
-                if net > 0:
-                    output = 1
-                else:
-                    output = 0
+                # get net and output
+                net, output = self.compute_net_and_get_output(row, w)
                 # compute point error
                 e = target - output
                 # update weights
@@ -53,7 +48,7 @@ class PerceptronLearner(SupervisedLearner):
 
             # compute mean squared error
             mse = sse / features.rows
-            # Track if error has changed
+            # Track if error has improved
             if mse < best_mse:
                 best_mse = mse
                 best_weights = np.copy(w)
@@ -67,16 +62,28 @@ class PerceptronLearner(SupervisedLearner):
 
             first_epoch = False
 
+        self.weights = best_weights
+        self.mse = best_mse
         print(best_weights)
         print(best_mse)
 
-
-
-
+    def compute_net_and_get_output(self, row, w):
+        # compute net
+        net = np.dot(w, row)
+        # compute output
+        if net > 0:
+            output = 1
+        else:
+            output = 0
+        return net, output
 
     def predict(self, features, labels):
         del labels[:]
-        labels += self.labels
-        pass
+
+        features = np.array(features)
+
+        # compute net and output prediction
+        net, output = self.compute_net_and_get_output(features, self.weights)
+        labels.append(output)
 
 

@@ -10,7 +10,7 @@ class PerceptronTest:
     def main(self):
         learner = PerceptronLearner()
         learner_name = "Perceptron"
-        file_name = "../datasets/nonlinear.arff"
+        file_name = "../datasets/voting.arff"
         # parse the command-line arguments
         # Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)
         eval_method = "training"
