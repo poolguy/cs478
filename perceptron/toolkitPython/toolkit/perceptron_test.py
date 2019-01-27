@@ -1,52 +1,27 @@
-from __future__ import (absolute_import, division, print_function, unicode_literals)
-
-# from supervised_learner import SupervisedLearner
-from toolkit.baseline_learner import BaselineLearner
-from toolkit.perceptron_learner import PerceptronLearner
-from toolkit.matrix import Matrix
 import random
-import argparse
 import time
 
+from toolkit.matrix import Matrix
+from toolkit.perceptron_learner import PerceptronLearner
 
-class MLSystemManager:
 
-    def get_learner(self, model):
-        """
-        Get an instance of a learner for the given model name.
-
-        To use toolkitPython as external package, you can extend this class (MLSystemManager)
-        with your own custom class located outside of this package, and override this method
-        to return your custom learners.
-
-        :type model: str
-        :rtype: SupervisedLearner
-        """
-        modelmap = {
-            "baseline": BaselineLearner(),
-            "perceptron": PerceptronLearner(),
-            #"neuralnet": NeuralNetLearner(),
-            #"decisiontree": DecisionTreeLearner(),
-            #"knn": InstanceBasedLearner()
-        }
-        if model in modelmap:
-            return modelmap[model]
-        else:
-            raise Exception("Unrecognized model: {}".format(model))
+class PerceptronTest:
 
     def main(self):
+        learner = PerceptronLearner()
+        learner_name = "Perceptron"
+        file_name = "../datasets/nonlinear.arff"
         # parse the command-line arguments
-        args = self.parser().parse_args()
-        file_name = args.arff
-        learner_name = args.L
-        eval_method = args.E[0]
-        eval_parameter = args.E[1] if len(args.E) > 1 else None
-        print_confusion_matrix = args.verbose
-        normalize = args.normalize
-        random.seed(args.seed) # Use a seed for deterministic results, if provided (makes debugging easier)
+        # Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)
+        eval_method = "training"
+        eval_parameter = None
+        # boolean: Print the confusion matrix and learner accuracy on individual class values
+        print_confusion_matrix = False
+        # boolean: Use normalized data
+        normalize = False
+        # string: Random seed
+        random.seed(12)
 
-        # load the model
-        learner = self.get_learner(learner_name)
 
         # load the ARFF file
         data = Matrix()
@@ -66,8 +41,8 @@ class MLSystemManager:
 
             print("Calculating accuracy on training set...")
 
-            features = Matrix(data, 0, 0, data.rows, data.cols-1)
-            labels = Matrix(data, 0, data.cols-1, data.rows, 1)
+            features = Matrix(data, 0, 0, data.rows, data.cols - 1)
+            labels = Matrix(data, 0, data.cols - 1, data.rows, 1)
             confusion = Matrix()
             start_time = time.time()
             learner.train(features, labels)
@@ -91,8 +66,8 @@ class MLSystemManager:
 
             print("Test set name: {}".format(eval_parameter))
             print("Number of test instances: {}".format(test_data.rows))
-            features = Matrix(data, 0, 0, data.rows, data.cols-1)
-            labels = Matrix(data, 0, data.cols-1, data.rows, 1)
+            features = Matrix(data, 0, 0, data.rows, data.cols - 1)
+            labels = Matrix(data, 0, data.cols - 1, data.rows, 1)
 
             start_time = time.time()
             learner.train(features, labels)
@@ -102,8 +77,8 @@ class MLSystemManager:
             train_accuracy = learner.measure_accuracy(features, labels)
             print("Training set accuracy: {}".format(train_accuracy))
 
-            test_features = Matrix(test_data, 0, 0, test_data.rows, test_data.cols-1)
-            test_labels = Matrix(test_data, 0, test_data.cols-1, test_data.rows, 1)
+            test_features = Matrix(test_data, 0, 0, test_data.rows, test_data.cols - 1)
+            test_labels = Matrix(test_data, 0, test_data.cols - 1, test_data.rows, 1)
             confusion = Matrix()
             test_accuracy = learner.measure_accuracy(test_features, test_labels, confusion)
             print("Test set accuracy: {}".format(test_accuracy))
@@ -125,11 +100,11 @@ class MLSystemManager:
             data.shuffle()
 
             train_size = int(train_percent * data.rows)
-            train_features = Matrix(data, 0, 0, train_size, data.cols-1)
-            train_labels = Matrix(data, 0, data.cols-1, train_size, 1)
+            train_features = Matrix(data, 0, 0, train_size, data.cols - 1)
+            train_labels = Matrix(data, 0, data.cols - 1, train_size, 1)
 
-            test_features = Matrix(data, train_size, 0, data.rows - train_size, data.cols-1)
-            test_labels = Matrix(data, train_size, data.cols-1, data.rows - train_size, 1)
+            test_features = Matrix(data, train_size, 0, data.rows - train_size, data.cols - 1)
+            test_labels = Matrix(data, train_size, data.cols - 1, data.rows - train_size, 1)
 
             start_time = time.time()
             learner.train(train_features, train_labels)
@@ -165,11 +140,11 @@ class MLSystemManager:
                     begin = int(i * data.rows / folds)
                     end = int((i + 1) * data.rows / folds)
 
-                    train_features = Matrix(data, 0, 0, begin, data.cols-1)
-                    train_labels = Matrix(data, 0, data.cols-1, begin, 1)
+                    train_features = Matrix(data, 0, 0, begin, data.cols - 1)
+                    train_labels = Matrix(data, 0, data.cols - 1, begin, 1)
 
-                    test_features = Matrix(data, begin, 0, end - begin, data.cols-1)
-                    test_labels = Matrix(data, begin, data.cols-1, end - begin, 1)
+                    test_features = Matrix(data, begin, 0, end - begin, data.cols - 1)
+                    test_labels = Matrix(data, begin, data.cols - 1, end - begin, 1)
 
                     train_features.add(data, end, 0, data.cols - 1)
                     train_labels.add(data, end, data.cols - 1, 1)
@@ -189,18 +164,6 @@ class MLSystemManager:
         else:
             raise Exception("Unrecognized evaluation method '{}'".format(eval_method))
 
-    def parser(self):
-        parser = argparse.ArgumentParser(description='Machine Learning System Manager')
-
-        parser.add_argument('-V', '--verbose', action='store_true', help='Print the confusion matrix and learner accuracy on individual class values')
-        parser.add_argument('-N', '--normalize', action='store_true', help='Use normalized data')
-        parser.add_argument('-R', '--seed', help="Random seed") # will give a string
-        parser.add_argument('-L', required=True, choices=['baseline', 'perceptron', 'neuralnet', 'decisiontree', 'knn'], help='Learning Algorithm')
-        parser.add_argument('-A', '--arff', metavar='filename', required=True, help='ARFF file')
-        parser.add_argument('-E', metavar=('METHOD', 'args'), required=True, nargs='+', help="Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)")
-
-        return parser
-
 
 if __name__ == '__main__':
-    MLSystemManager().main()
+    PerceptronTest().main()
