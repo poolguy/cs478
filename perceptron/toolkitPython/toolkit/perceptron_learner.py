@@ -11,21 +11,19 @@ from .supervised_learner import SupervisedLearner
 
 class PerceptronLearner(SupervisedLearner):
 
-
     def train(self, features, labels):
         solution_found = False
         n_epochs_without_improvement = 0
         # instantiate learning rate, weight vector, and mse
         lr = .05
-        w = np.zeros(shape=(1, features.cols + 1))
+        self.w = np.zeros(shape=(1, features.cols + 1))
         best_mse = math.inf
         best_weights = np.zeros(shape=(1, features.cols + 1))
+        best_accuracy = 0
 
         first_epoch = True
         # epochs
-        # todo: build stopping criteria based off of accuracy, not improvement
-        while n_epochs_without_improvement < 40 and not solution_found:
-            sse = 0
+        while n_epochs_without_improvement < 10 and not solution_found:
             for i, row in enumerate(features.data):
                 # add bias input to row and convert to numpy array
                 if first_epoch:
@@ -36,36 +34,31 @@ class PerceptronLearner(SupervisedLearner):
                 target = labels.data[i][0]
 
                 # get net and output
-                net, output = self.compute_net_and_get_output(row, w)
+                net, output = self.compute_net_and_get_output(row, self.w)
                 # compute point error
                 e = target - output
                 # update weights
                 w_update_vector = lr * e * row
-                w += w_update_vector
+                self.w += w_update_vector
 
-                # update sum squared error
-                sse += e**2
-
-            # compute mean squared error
-            mse = sse / features.rows
-            # Track if error has improved
-            if mse < best_mse:
-                best_mse = mse
-                best_weights = np.copy(w)
+            # Track if accuracy has improved
+            accuracy = self.measure_accuracy(features, labels)
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_weights = np.copy(self.w)
                 n_epochs_without_improvement = 0
             else:
                 n_epochs_without_improvement += 1
 
             # If there is no error, a solution has been found. Exit the loop.
-            if mse == 0:
+            if accuracy == 1:
                 solution_found = True
 
             first_epoch = False
 
-        self.weights = best_weights
+        self.w = best_weights
         self.mse = best_mse
         print(best_weights)
-        print(best_mse)
 
     def compute_net_and_get_output(self, row, w):
         # compute net
@@ -83,7 +76,7 @@ class PerceptronLearner(SupervisedLearner):
         features = np.array(features)
 
         # compute net and output prediction
-        net, output = self.compute_net_and_get_output(features, self.weights)
+        net, output = self.compute_net_and_get_output(features, self.w)
         labels.append(output)
 
 

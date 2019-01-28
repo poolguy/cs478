@@ -7,10 +7,7 @@ from toolkit.perceptron_learner import PerceptronLearner
 
 class PerceptronTest:
 
-    def main(self):
-        learner = PerceptronLearner()
-        learner_name = "Perceptron"
-        file_name = "../datasets/voting.arff"
+    def main(self, learner, learner_name, file_name, seed):
         # parse the command-line arguments
         # Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)
         eval_method = "training"
@@ -20,7 +17,7 @@ class PerceptronTest:
         # boolean: Use normalized data
         normalize = False
         # string: Random seed
-        random.seed(12)
+        random.seed(seed)
 
 
         # load the ARFF file
@@ -165,5 +162,8 @@ class PerceptronTest:
             raise Exception("Unrecognized evaluation method '{}'".format(eval_method))
 
 
+
+
+
 if __name__ == '__main__':
-    PerceptronTest().main()
+    PerceptronTest().main("../datasets/nonlinear.arff", PerceptronLearner(), "Perceptron", 12)
