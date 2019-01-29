@@ -70,11 +70,16 @@ class SupervisedLearner:
             prediction = []
             for i in range(features.rows):
                 feat = features.row(i)
-                targ = int(labels.get(i, 0))
+
+                targ = labels.get(i, 0)
+                targ = int(targ)
                 if targ >= label_values_count:
                     raise Exception("The label is out of range")
                 self.predict(feat, prediction)
-                pred = int(prediction[0])
+                pred = prediction[0]
+                if isinstance(pred, str):
+                    pred = labels.str_to_enum[0][pred]
+                pred = int(pred)
                 if confusion:
                     confusion.set(targ, pred, confusion.get(targ, pred)+1)
                 if pred == targ:
