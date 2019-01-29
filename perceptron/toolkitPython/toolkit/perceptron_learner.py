@@ -10,20 +10,23 @@ from .supervised_learner import SupervisedLearner
 
 
 class PerceptronLearner(SupervisedLearner):
+    def __init__(self):
+        self.final_labels = []
+
 
     def train(self, features, labels):
         solution_found = False
         n_epochs_without_improvement = 0
         # instantiate learning rate, weight vector, and mse
         lr = .05
-        self.w = np.zeros(shape=(1, features.cols + 1))
+        self.w = np.random.random_sample((1, features.cols + 1))
         best_mse = math.inf
         best_weights = np.zeros(shape=(1, features.cols + 1))
         best_accuracy = 0
 
         first_epoch = True
         # epochs
-        while n_epochs_without_improvement < 10 and not solution_found:
+        while n_epochs_without_improvement < 50 and not solution_found:
             for i, row in enumerate(features.data):
                 # add bias input to row and convert to numpy array
                 if first_epoch:
@@ -78,11 +81,13 @@ class PerceptronLearner(SupervisedLearner):
         # compute net and output prediction
         net, output = self.compute_net_and_get_output(features, self.w)
         labels.append(output)
+        self.final_labels.append(output)
 
 
 class MultiClassPerceptron(PerceptronLearner):
     def __init__(self, weights):
         self.weights_dict = weights
+        self.final_labels = []
 
     def train(self, features, labels):
         self.weights_dict.append(super().train(features, labels))
@@ -100,10 +105,12 @@ class MultiClassPerceptron(PerceptronLearner):
 
             net, output = self.compute_net_and_get_output(features, value)
 
+            # if abs(output) >= abs(best_output):
             if output >= best_output:
                 if net >= best_net:
                     best_net = net
                     best_output = output
                     output_class = key
 
+        self.final_labels.append(output_class)
         labels.append(output_class)

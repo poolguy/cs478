@@ -1,6 +1,8 @@
 import random
 import time
 
+import numpy as np
+
 from toolkit.matrix import Matrix
 from toolkit.perceptron_learner import PerceptronLearner
 from toolkit.perceptron_learner import MultiClassPerceptron
@@ -169,12 +171,14 @@ class PerceptronTest:
 
 def multi_class_test():
     weights = {}
+    versicolor_learner = PerceptronLearner()
     weights["Iris-setosa"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-setosa.arff", 12)
-    weights["Iris-versicolor"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-versicolor.arff", 12)
+    weights["Iris-versicolor"] = PerceptronTest().main(versicolor_learner, "Perceptron", "../datasets/iris-versicolor.arff", 12)
     weights["Iris-virginica"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-virginica.arff", 12)
 
     multi_class_learner = MultiClassPerceptron(weights)
     PerceptronTest().main(multi_class_learner, "Multi Class Perceptron", "../datasets/iris.arff", 12, False)
+    multi_class_learner.final_labels = np.array(multi_class_learner.final_labels)
 
 
 
