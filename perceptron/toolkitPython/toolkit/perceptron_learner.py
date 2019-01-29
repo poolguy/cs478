@@ -58,7 +58,7 @@ class PerceptronLearner(SupervisedLearner):
 
         self.w = best_weights
         self.mse = best_mse
-        print(best_weights)
+        return self.w
 
     def compute_net_and_get_output(self, row, w):
         # compute net
@@ -80,3 +80,30 @@ class PerceptronLearner(SupervisedLearner):
         labels.append(output)
 
 
+class MultiClassPerceptron(PerceptronLearner):
+    def __init__(self, weights):
+        self.weights_dict = weights
+
+    def train(self, features, labels):
+        self.weights_dict.append(super().train(features, labels))
+
+    def predict(self, features, labels):
+        # if training is done
+        del labels[:]
+
+        best_net = -math.inf
+        best_output = 0
+        output_class = ""
+        features.append(1)
+        features = np.array(features)
+        for key, value in self.weights_dict.items():
+
+            net, output = self.compute_net_and_get_output(features, value)
+
+            if output >= best_output:
+                if net >= best_net:
+                    best_net = net
+                    best_output = output
+                    output_class = key
+
+        labels.append(output_class)

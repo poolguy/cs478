@@ -3,11 +3,12 @@ import time
 
 from toolkit.matrix import Matrix
 from toolkit.perceptron_learner import PerceptronLearner
+from toolkit.perceptron_learner import MultiClassPerceptron
 
 
 class PerceptronTest:
 
-    def main(self, learner, learner_name, file_name, seed):
+    def main(self, learner, learner_name, file_name, seed, train=True):
         # parse the command-line arguments
         # Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)
         eval_method = "training"
@@ -42,7 +43,8 @@ class PerceptronTest:
             labels = Matrix(data, 0, data.cols - 1, data.rows, 1)
             confusion = Matrix()
             start_time = time.time()
-            learner.train(features, labels)
+            if train:
+                learner.train(features, labels)
             elapsed_time = time.time() - start_time
             print("Time to train (in seconds): {}".format(elapsed_time))
             accuracy = learner.measure_accuracy(features, labels, confusion)
@@ -52,6 +54,9 @@ class PerceptronTest:
                 print("\nConfusion matrix: (Row=target value, Col=predicted value)")
                 confusion.print()
                 print("")
+
+            if train:
+                return learner.w
 
         elif eval_method == "static":
 
@@ -162,8 +167,17 @@ class PerceptronTest:
             raise Exception("Unrecognized evaluation method '{}'".format(eval_method))
 
 
+def multi_class_test():
+    weights = {}
+    weights["Iris-setosa"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-setosa.arff", 12)
+    weights["Iris-versicolor"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-versicolor.arff", 12)
+    weights["Iris-virginica"] = PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/iris-virginica.arff", 12)
+
+    multi_class_learner = MultiClassPerceptron(weights)
+    PerceptronTest().main(multi_class_learner, "Multi Class Perceptron", "../datasets/iris.arff", 12, False)
 
 
 
 if __name__ == '__main__':
-    PerceptronTest().main("../datasets/nonlinear.arff", PerceptronLearner(), "Perceptron", 12)
+    # PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/nonlinear.arff", 12)
+    multi_class_test()
