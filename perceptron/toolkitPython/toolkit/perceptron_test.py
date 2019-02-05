@@ -2,6 +2,8 @@ import random
 import time
 
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import arff
 
 from toolkit.matrix import Matrix
 from toolkit.perceptron_learner import PerceptronLearner
@@ -13,8 +15,8 @@ class PerceptronTest:
     def main(self, learner, learner_name, file_name, seed, train=True):
         # parse the command-line arguments
         # Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)
-        eval_method = "training"
-        eval_parameter = None
+        eval_method = "random"
+        eval_parameter = .7
         # boolean: Print the confusion matrix and learner accuracy on individual class values
         print_confusion_matrix = False
         # boolean: Use normalized data
@@ -56,9 +58,6 @@ class PerceptronTest:
                 print("\nConfusion matrix: (Row=target value, Col=predicted value)")
                 confusion.print()
                 print("")
-
-            if train:
-                return learner.w
 
         elif eval_method == "static":
 
@@ -168,6 +167,9 @@ class PerceptronTest:
         else:
             raise Exception("Unrecognized evaluation method '{}'".format(eval_method))
 
+        if train:
+            return learner.w
+
 
 def multi_class_test():
     weights = {}
@@ -181,7 +183,15 @@ def multi_class_test():
     multi_class_learner.final_labels = np.array(multi_class_learner.final_labels)
 
 
+def make_plot():
+    data = Matrix()
+    data.load_arff("../datasets/linear.arff")
+    features = Matrix(data, 0, 0, data.rows, data.cols - 1)
+    labels = Matrix(data, 0, data.cols - 1, data.rows, 1)
+
+
 
 if __name__ == '__main__':
-    # PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/nonlinear.arff", 12)
+    # PerceptronTest().main(PerceptronLearner(), "Perceptron", "../datasets/voting.arff", 12)
     multi_class_test()
+    # make_plot()

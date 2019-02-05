@@ -13,24 +13,32 @@ class PerceptronLearner(SupervisedLearner):
     def __init__(self):
         self.final_labels = []
 
-
     def train(self, features, labels):
         solution_found = False
         n_epochs_without_improvement = 0
         # instantiate learning rate, weight vector, and mse
-        lr = .05
+        lr = .1
         self.w = np.random.random_sample((1, features.cols + 1))
         best_mse = math.inf
         best_weights = np.zeros(shape=(1, features.cols + 1))
         best_accuracy = 0
+        self.len_with_bias = len(features.data[0]) + 1
 
-        first_epoch = True
+        misclassification_rates = []
+
+        n_epochs = 0
+
+        # print("0th epoch")
+        # print(1-self.measure_accuracy(features, labels))
+
         # epochs
-        while n_epochs_without_improvement < 50 and not solution_found:
+        while n_epochs_without_improvement < 10 and not solution_found:
+            n_epochs += 1
+            features.shuffle(labels)
             for i, row in enumerate(features.data):
                 # add bias input to row and convert to numpy array
-                if first_epoch:
-                    row.append(1)
+                self.add_bias_if_necessary(row)
+
                 row = np.array(row)
 
                 # get target
@@ -57,10 +65,14 @@ class PerceptronLearner(SupervisedLearner):
             if accuracy == 1:
                 solution_found = True
 
-            first_epoch = False
+            misclassification_rates.append(1-accuracy)
 
         self.w = best_weights
         self.mse = best_mse
+        # print("\n")
+        # print(misclassification_rates)
+        # print(n_epochs)
+        # print(self.w)
         return self.w
 
     def compute_net_and_get_output(self, row, w):
@@ -76,12 +88,17 @@ class PerceptronLearner(SupervisedLearner):
     def predict(self, features, labels):
         del labels[:]
 
+        self.add_bias_if_necessary(features)
         features = np.array(features)
 
         # compute net and output prediction
         net, output = self.compute_net_and_get_output(features, self.w)
         labels.append(output)
         self.final_labels.append(output)
+
+    def add_bias_if_necessary(self, row):
+        if len(row) != self.len_with_bias:
+            row.append(1)
 
 
 class MultiClassPerceptron(PerceptronLearner):
@@ -90,7 +107,8 @@ class MultiClassPerceptron(PerceptronLearner):
         self.final_labels = []
 
     def train(self, features, labels):
-        self.weights_dict.append(super().train(features, labels))
+        pass
+        # self.weights_dict.append(super().train(features, labels))
 
     def predict(self, features, labels):
         # if training is done
